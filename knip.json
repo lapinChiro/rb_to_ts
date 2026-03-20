@@ -1,0 +1,12 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "project": ["src/**/*.ts"],
+  "ignore": [
+    "src/parser/**",
+    "src/transformer/**",
+    "src/generator/**",
+    "src/ir/**",
+    "src/types/**"
+  ],
+  "ignoreDependencies": ["ts-morph"]
+}

@@ -1,0 +1,54 @@
+# TODO
+
+## 開発計画
+
+### フェーズ 1: パイプライン基盤構築
+
+以下の順序で実装する。各ステップは /tdd で進める。
+
+1. **IR 型定義** — TS IR ノードの型を `src/ir/index.ts` に定義する
+   - IR ノードは TypeScript の構文概念に対応させる: `FunctionDeclaration`, `InterfaceDeclaration`, `VariableStatement`, `ClassDeclaration`, `ReturnStatement`, `IfStatement`, `ForStatement`, `ExpressionStatement` 等
+   - Ruby 固有の概念 (`block`, `yield`, `symbol`, `open class`, `duck typing` 等) は IR に直接表現しない。Transformer が TS 相当の概念に変換してから IR に格納する
+   - この責務分離により、Ruby の新構文対応は Transformer の変更のみで完結する
+2. **Parser** — Prism Wasm を呼び出して Ruby ソースを AST に変換する `src/parser/`
+3. **Generator** — IR から TypeScript コードを ts-morph 軽量モードで生成する `src/generator/`
+4. **Transformer (最小)** — Ruby AST の最も基本的なノード (文字列リテラル、数値リテラル、変数代入) を IR に変換する `src/transformer/`
+5. **CLI 統合** — parser → transformer → generator のパイプラインを `src/index.ts` で繋ぐ
+
+フェーズ 1 完了時点で **最初のベンチマーク計測** を行う: abbrev.rb を入力し、どの構文が変換でき、どの構文が未対応かを収集する。
+
+### フェーズ 2: abbrev 完全変換
+
+abbrev.rb の全構文を変換できるまで /abbrev-cycle を繰り返す。
+
+- **abbrev 選定理由**: メタプログラミングなし、純粋な文字列操作ロジック、1 ファイル・約 80 行で極小、パイプライン全体を通すことに集中できる
+- **成功基準**:
+  1. `abbrev.rb` → 変換 → `abbrev.ts` が生成される
+  2. `tsc --noEmit` で型エラー 0 件
+  3. Ruby 版と TS 版で同じ入力に対して同じ出力が得られる (E2E テスト)
+- **ベンチマーク計測タイミング**: /abbrev-cycle の各サイクル完了時に変換率を計測・記録する
+
+### フェーズ 3 以降: 対象ライブラリの段階的拡大
+
+| 順序 | ライブラリ | 特徴 | 期待される新規対応構文 |
+|------|-----------|------|----------------------|
+| 1 | `abbrev` | 文字列操作、ハッシュ | 基本構文一式 |
+| 2 | `strscan` | クラス、状態管理 | クラス定義、インスタンス変数、メソッド |
+| 3 | `set` | コレクション、Enumerable | モジュール、mixin、イテレータ |
+| 4 | `csv` | IO、例外処理、複雑なオプション | 例外処理、デフォルト引数、キーワード引数 |
+
+各ライブラリへの移行時に abbrev-cycle スキルを拡張し、ベンチマークスクリプトを対応させる。
+
+## PRD 化可能
+
+(なし — フェーズ 1 のステップ 1 から /tdd で着手可能)
+
+## 保留
+
+(なし)
+
+## スコープ外
+
+- **Rails 対応時の並列化**: worker_threads による並列変換。パフォーマンスのボトルネックが計測で確認された場合にのみ検討する
+- **AST 変換の Rust 移行**: 変換ホットパスの Rust (Napi-rs) 移行。計測なしの予防的最適化は行わない。計測でボトルネックが確認された場合にのみ検討する
+- **Ruby メタプログラミング全般**: `method_missing`, `define_method`, `eval`, `class_eval` 等。段階的に対応するが、初期フェーズではスコープ外として記録し、目的分析から着手する

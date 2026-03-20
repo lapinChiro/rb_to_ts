@@ -1,0 +1,50 @@
+{
+  "name": "rb-to-ts",
+  "version": "0.1.0",
+  "description": "Ruby to TypeScript transpiler",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "rb-to-ts": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "lint": "oxlint . && eslint .",
+    "lint:fix": "oxlint --fix . && eslint --fix .",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "knip": "knip",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "quality": "npm run type-check && npm run lint && npm run knip && npm run test"
+  },
+  "keywords": [
+    "ruby",
+    "typescript",
+    "transpiler"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "ts-morph": "^27.0.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^25.5.0",
+    "@vitest/coverage-v8": "^4.1.0",
+    "eslint": "^10.0.3",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-oxlint": "^1.56.0",
+    "eslint-plugin-perfectionist": "^5.7.0",
+    "knip": "^6.0.0",
+    "oxlint": "^1.56.0",
+    "oxlint-tsgolint": "^0.17.1",
+    "prettier": "^3.8.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.57.1",
+    "vitest": "^4.1.0"
+  }
+}
